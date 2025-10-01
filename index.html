@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalyst - Goal Decomposer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-2xl text-center">
+        <h1 class="text-5xl md:text-6xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+            Ubah Ambisi Jadi Aksi.
+        </h1>
+        <p class="text-lg text-gray-400 mb-8">
+            Berhenti bingung harus mulai dari mana. Masukkan tujuan besar Anda, dan biarkan AI kami menyusun roadmap langkah-demi-langkah untuk Anda.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-2 mb-8">
+            <input type="text" id="goalInput" placeholder="Contoh: 'Meluncurkan podcast dalam 3 bulan'" class="flex-grow bg-gray-800 border border-gray-700 rounded-md p-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button id="generateButton" class="bg-blue-600 hover:bg-blue-700 rounded-md px-8 py-3 font-semibold transition-colors">
+                Buatkan Roadmap Saya!
+            </button>
+        </div>
+
+        <div id="resultArea" class="bg-gray-800 border border-gray-700 rounded-lg p-6 text-left min-h-[100px]">
+            <p id="placeholder" class="text-gray-500">Roadmap Anda akan muncul di sini...</p>
+            <div id="loading" class="hidden">
+                <p>Menganalisis tujuan Anda... AI sedang berpikir keras...</p>
+                 <div class="w-full bg-gray-700 rounded-full h-2.5 mt-4">
+                    <div class="bg-blue-600 h-2.5 rounded-full animate-pulse"></div>
+                </div>
+            </div>
+            <div id="output" class="prose prose-invert max-w-none"></div>
+        </div>
+
+        <div id="waitlist" class="mt-12 p-6 bg-gray-800/50 border border-gray-700 rounded-lg hidden">
+             <h2 class="text-2xl font-bold mb-2">Suka dengan hasilnya?</h2>
+             <p class="text-gray-400 mb-4">Jadilah yang pertama mencoba versi lengkap Catalyst saat diluncurkan. Masukkan email Anda untuk bergabung dalam daftar tunggu eksklusif.</p>
+             <form class="flex flex-col sm:flex-row gap-2">
+                 <input type="email" placeholder="Email Anda" class="flex-grow bg-gray-800 border border-gray-700 rounded-md p-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                 <button type="submit" class="bg-purple-600 hover:bg-purple-700 rounded-md px-8 py-3 font-semibold transition-colors">Gabung Waitlist</button>
+             </form>
+        </div>
+
+    </div>
+
+    <script>
+        const goalInput = document.getElementById('goalInput');
+        const generateButton = document.getElementById('generateButton');
+        const resultArea = document.getElementById('resultArea');
+        const placeholder = document.getElementById('placeholder');
+        const loading = document.getElementById('loading');
+        const output = document.getElementById('output');
+        const waitlist = document.getElementById('waitlist');
+
+        generateButton.addEventListener('click', async () => {
+            const goal = goalInput.value;
+            if (!goal) {
+                alert('Tolong masukkan tujuan Anda.');
+                return;
+            }
+
+            // Tampilkan status loading
+            placeholder.classList.add('hidden');
+            output.innerHTML = '';
+            loading.classList.remove('hidden');
+            generateButton.disabled = true;
+            generateButton.innerText = 'Memproses...';
+
+            try {
+                // Panggil "otak" AI kita
+                const response = await fetch('/api/generate-roadmap', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ goal })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Gagal menghubungi AI.');
+                }
+
+                const data = await response.json();
+                
+                // Tampilkan hasil
+                output.innerHTML = data.roadmap; // Diasumsikan AI mengembalikan format HTML
+                waitlist.classList.remove('hidden');
+
+            } catch (error) {
+                output.innerHTML = '<p class="text-red-400">Terjadi kesalahan. Silakan coba lagi.</p>';
+                console.error(error);
+            } finally {
+                // Sembunyikan status loading
+                loading.classList.add('hidden');
+                generateButton.disabled = false;
+                generateButton.innerText = 'Buatkan Roadmap Saya!';
+            }
+        });
+    </script>
+</body>
+</html>
